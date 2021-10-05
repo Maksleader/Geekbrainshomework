@@ -89,6 +89,7 @@ bool operator < (struct PhoneNumber& p1, struct PhoneNumber& p2)
 }
 
 
+
 istream& operator>> (istream& is, PhoneNumber& p1)
 {
 
@@ -121,7 +122,10 @@ bool Compare1(pair<Person, PhoneNumber> phonebook1, pair<Person, PhoneNumber> ph
 };
 
 
-
+bool operator == (pair<Person, PhoneNumber> phonebook1, string a)
+{
+	return phonebook1.first.surname == a;
+}
 
 
 class Phonebook
@@ -173,39 +177,40 @@ public:
 		sort(phonebook.begin(), phonebook.end(), Compare1);
 
 	}
-	string foo()
-	{
-		string a, b, c, d;
-		if (a == b)
-		{
-			return c;
-		}
-		else
-		{
-			return c = "not found";
-		}
-	}
+
+
 	
-	auto GetPhoneNumber(string surname)
+	
+	pair<string,PhoneNumber> GetPhoneNumber(string surname)
 	{
 		
-		string b;
+		string c;
 		PhoneNumber number;
+		auto test = [surname, number, &c](pair < Person, PhoneNumber>vec, int i=0)
+		{
+			if (vec.first.surname == surname && i==1)
+			{
+				c = "";
+				vec.second = number;
+				i++;
+			}
+			else if (vec.first.surname != surname)
+			{
+				c = "not found";
+			}
+			
+		};
 	
 
+		for_each(phonebook.begin(), phonebook.end(), test);
 		
-
-		for_each(phonebook.begin(), phonebook.end(), [surname,&b](const auto& phonebook)
-		{
-				
-		});
-
-		return make_tuple (b,number);
-
+		return { c ,number };
+		 
 	};
 	
-};
 
+	
+};
 
 
 ostream& operator<< (ostream& print, Phonebook& vec)
@@ -247,9 +252,9 @@ int main()
 		cout << endl;
 	};
 
-	print_phone_number("Ivanov");
+	print_phone_number("Aleksandrov");
 
-	print_phone_number("Petrov");
+	print_phone_number("Ivanov");
 
 }
 
