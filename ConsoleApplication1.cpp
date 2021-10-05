@@ -202,7 +202,20 @@ public:
 		};
 	
 
-		for_each(phonebook.begin(), phonebook.end(), test);
+		for_each(phonebook.begin(), phonebook.end(), [surname, number, &c](pair < Person, PhoneNumber>vec, int i = 0)
+			{
+				if (vec.first.surname == surname && i == 1)
+				{
+					c = "";
+					vec.second = number;
+					i++;
+				}
+				else if (vec.first.surname != surname)
+				{
+					c = "not found";
+				}
+
+			});
 		
 		return { c ,number };
 		 
