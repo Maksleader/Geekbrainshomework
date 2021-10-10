@@ -20,8 +20,13 @@ struct Person
 {
 	string surname;
 	string name;
-	string a;
-	optional<string> patronymic;
+	string patronymic;
+	optional<string> creat(string& patronymic)
+	{
+		if (patronymic == "-")
+			return " ";
+		return{};
+	}
 
 };
 
@@ -29,19 +34,19 @@ struct Person
 
 bool operator == (const struct Person& p1, const  Person& p2)
 {
-	return tie(p1.surname, p1.name, p1.a) == tie(p2.surname, p2.name, p2.a);
+	return tie(p1.surname, p1.name, p1.patronymic) == tie(p2.surname, p2.name, p2.patronymic);
 }
 bool operator < (struct Person& p1, struct Person& p2)
 {
-	return tie(p1.surname, p1.name, p1.a) < tie(p2.surname, p2.name, p2.a);
+	return tie(p1.surname, p1.name, p1.patronymic) < tie(p2.surname, p2.name, p2.patronymic);
 };
 
 istream& operator>> (istream& is, Person& p1)
 {
 
 
-	is >> p1.surname >> p1.name >> p1.a;
-	p1.patronymic = p1.a;
+	is >> p1.surname >> p1.name >> p1.patronymic;
+
 
 	return is;
 
@@ -51,17 +56,9 @@ istream& operator>> (istream& is, Person& p1)
 std::ostream& operator<< (std::ostream& s, Person& p1)
 {
 
-	if (p1.patronymic && p1.patronymic == "-")
-	{
+	s << right << setw(12) << p1.surname << "        " << right << setw(12) << p1.name << "                   " << setw(14) << p1.creat(p1.patronymic).value_or(p1.patronymic);
 
-		s << right << setw(11) << p1.surname << "        " << right << setw(11) << p1.name << "                      ";
-	}
-	else
-	{
 
-		s << right << setw(11) << p1.surname << "        " << right << setw(11) << p1.name << "        " << right << setw(14) << p1.patronymic.value();
-
-	}
 
 	return s;
 };
@@ -72,8 +69,9 @@ struct PhoneNumber
 	int country_code{};
 	int city_code{};
 	string number;
-	int b{};
-	optional<int>additional_number;
+	int additional_number{};
+
+
 
 
 
@@ -82,50 +80,46 @@ struct PhoneNumber
 
 bool operator == (struct PhoneNumber& p1, struct PhoneNumber& p2)
 {
-	return tie(p1.country_code, p1.city_code, p1.b) == tie(p2.country_code, p2.city_code, p2.b);
+	return tie(p1.country_code, p1.city_code, p1.additional_number) == tie(p2.country_code, p2.city_code, p2.additional_number);
 }
 bool operator < (struct PhoneNumber& p1, struct PhoneNumber& p2)
 {
-	return  tie(p1.country_code, p1.city_code,p1.number, p1.b) < tie(p2.country_code, p2.city_code,p2.number, p2.b);
+	return  tie(p1.country_code, p1.city_code, p1.number, p1.additional_number) < tie(p2.country_code, p2.city_code, p2.number, p2.additional_number);
 }
 
 
 
-istream& operator>> (istream& is,  PhoneNumber& p1)
+istream& operator>> (istream& is, PhoneNumber& p1)
 {
 
-	is >> p1.country_code >> p1.city_code >> p1.number >> p1.b;
-	p1.additional_number = p1.b;
-	return is;
+	return is >> p1.country_code >> p1.city_code >> p1.number >> p1.additional_number;
+
+
 };
 
 
 std::ostream& operator<< (std::ostream& out, PhoneNumber& p1)
 {
-	if (p1.additional_number && p1.additional_number == 0)
-	{
-		out << "+" << p1.country_code << "(" << p1.city_code << ")" << p1.number << " ";
-	}
+
+	if (p1.additional_number == 0)
+		return out << "+" << p1.country_code << "(" << p1.city_code << ")" << p1.number << " ";
+
 	else
 	{
-		out << "+" << p1.country_code << "(" << p1.city_code << ")" << p1.number << " " << p1.additional_number.value();
+		return out << "+" << p1.country_code << "(" << p1.city_code << ")" << p1.number << " " << p1.additional_number;
 	}
-	return out;
+
+
 };
-bool Compare(pair<Person, PhoneNumber> phonebook1, pair<Person, PhoneNumber> phonebook2)
+bool Compare_Person(pair<Person, PhoneNumber> phonebook1, pair<Person, PhoneNumber> phonebook2)
 {
 	return phonebook1.first < phonebook2.first;
 };
-bool Compare1(pair<Person, PhoneNumber> phonebook1, pair<Person, PhoneNumber> phonebook2)
+bool Compare_PhoneNumber(pair<Person, PhoneNumber> phonebook1, pair<Person, PhoneNumber> phonebook2)
 {
 	return phonebook1.second < phonebook2.second;
 };
 
-
-bool operator == (pair<Person, PhoneNumber> phonebook1, Person &a)
-{
-	return phonebook1.first == a;
-}
 
 
 class Phonebook
@@ -142,69 +136,72 @@ public:
 		PhoneNumber number;
 		string line;
 
-		
+
 
 		if (file.is_open())
 		{
 
-			while (!file.eof())
+			while (getline(file, line))
 			{
 
-				//file >> person >> number;
-				getline(file, line);
-				stringstream geek(line);
-
-				geek >>person>> number;
+				stringstream b_convert_int_to_string(line);
+				b_convert_int_to_string >> person >> number;
 
 				phonebook.push_back(make_pair(person, number));
 			}
 
-				file.close();
-			
-		};
+			file.close();
+
+
+		}
+		else
+		{
+			cout << "ERROR";
+		}
+
 		
-		
+
 	};
-	
+
 	void SortByName()
 	{
-		sort(phonebook.begin(), phonebook.end(), Compare);
-	
+		sort(phonebook.begin(), phonebook.end(), Compare_Person);
+
 	}
 
 	void SortByPhone()
 	{
-		sort(phonebook.begin(), phonebook.end(), Compare1);
+		sort(phonebook.begin(), phonebook.end(), Compare_PhoneNumber);
 
 	}
 
 
-	
-	
-	pair<string,PhoneNumber> GetPhoneNumber(string surname)
-	{
-		
-		int  flag=0;
-		PhoneNumber number;
-		
-	
 
-		for_each(phonebook.begin(), phonebook.end(), [surname, &number,&flag](const  pair<Person, PhoneNumber>& vec) 
-		{
-				
-				if(vec.first.surname==surname)
-				{ 
+
+	pair<string, PhoneNumber> GetPhoneNumber(string surname)
+	{
+
+		int  flag_for_counting_repetitive_surname = 0;
+		PhoneNumber number;
+
+
+
+		for_each(phonebook.begin(), phonebook.end(), [surname, &number, &flag_for_counting_repetitive_surname](const  pair<Person, PhoneNumber>& vec)
+			{
+
+				if (vec.first.surname == surname)
+				{
 					number = vec.second;
-					++flag;
+					++flag_for_counting_repetitive_surname;
 				}
-				
-		});
-		
-		if (flag==1)
+
+			});
+
+		if (flag_for_counting_repetitive_surname == 1)
 		{
 			return { "",number };
 		}
-		else if (flag > 1)
+		else if (flag_for_counting_repetitive_surname > 1)
 		{
 			return { "found more than 1",number };
 		}
@@ -212,33 +209,33 @@ public:
 		{
 			return { "not found",number };
 		}
-		
-		 
+
+
 	};
 
 
-	
-	void ChangePhoneNumber(Person a, PhoneNumber b)
+
+	void ChangePhoneNumber(Person a_varaible_of_struct_Person, PhoneNumber b_varaible_of_struct_PhoneNumber)
 	{
 
 
 
 
-		vector<pair<Person, PhoneNumber>>::iterator itr = find_if(phonebook.begin(), phonebook.end(), [a, b](const pair< Person, PhoneNumber>& vec)
-		{
-				return vec.first == a;
+		vector<pair<Person, PhoneNumber>>::iterator itr_for_replace_PhoneNumber = find_if(phonebook.begin(), phonebook.end(), [a_varaible_of_struct_Person](const pair< Person, PhoneNumber>& vec)
+			{
+				return vec.first == a_varaible_of_struct_Person;
 
-		});
+			});
 
-		if (itr != phonebook.end())
+		if (itr_for_replace_PhoneNumber != phonebook.end())
 		{
-			itr->second = b;
-			
+			itr_for_replace_PhoneNumber->second = b_varaible_of_struct_PhoneNumber;
+
 		}
-		else
-			{ }
+		else {}
 
-		
+
+
 
 
 	}
@@ -250,9 +247,9 @@ public:
 
 ostream& operator<< (ostream& print, Phonebook& vec)
 {
-	for ( auto&[Person,PhoneNumber]:vec.phonebook )
+	for (auto& [Person, PhoneNumber] : vec.phonebook)
 	{
-		print<< Person << right << setw(12) <<PhoneNumber << endl;
+		print << Person << right << setw(12) << PhoneNumber << endl;
 	};
 
 
@@ -276,7 +273,7 @@ int main()
 	book.SortByName();
 	cout << book;
 	cout << "-----GetPhoneNumber-----" << endl;
-	auto print_phone_number = [&book](const string&surname)
+	auto print_phone_number = [&book](const string& surname)
 	{
 		cout << surname << "\t";
 		auto answer = book.GetPhoneNumber(surname);
@@ -287,7 +284,7 @@ int main()
 		cout << endl;
 	};
 
-	print_phone_number("Solovev");
+	print_phone_number("Ivanov");
 
 	print_phone_number("Petrov");
 
@@ -298,8 +295,13 @@ int main()
 		PhoneNumber{ 16, 465, "9155448", 13 });
 	cout << book;
 
-	
+
 }
+
+
+
+
+
 
 
 
