@@ -13,12 +13,13 @@
 
 
 
+
 using namespace std;
 
 struct Person
 {
-	string name;
 	string surname;
+	string name;
 	string a;
 	optional<string> patronymic;
 
@@ -26,7 +27,7 @@ struct Person
 
 
 
-bool operator == (struct Person& p1, struct Person& p2)
+bool operator == (const struct Person& p1, const  Person& p2)
 {
 	return tie(p1.surname, p1.name, p1.a) == tie(p2.surname, p2.name, p2.a);
 }
@@ -90,12 +91,11 @@ bool operator < (struct PhoneNumber& p1, struct PhoneNumber& p2)
 
 
 
-istream& operator>> (istream& is, PhoneNumber& p1)
+istream& operator>> (istream& is,  PhoneNumber& p1)
 {
 
 	is >> p1.country_code >> p1.city_code >> p1.number >> p1.b;
 	p1.additional_number = p1.b;
-
 	return is;
 };
 
@@ -122,9 +122,9 @@ bool Compare1(pair<Person, PhoneNumber> phonebook1, pair<Person, PhoneNumber> ph
 };
 
 
-bool operator == (pair<Person, PhoneNumber> phonebook1, string a)
+bool operator == (pair<Person, PhoneNumber> phonebook1, Person &a)
 {
-	return phonebook1.first.surname == a;
+	return phonebook1.first == a;
 }
 
 
@@ -150,7 +150,7 @@ public:
 			while (!file.eof())
 			{
 
-
+				//file >> person >> number;
 				getline(file, line);
 				stringstream geek(line);
 
@@ -184,45 +184,67 @@ public:
 	pair<string,PhoneNumber> GetPhoneNumber(string surname)
 	{
 		
-		string c;
+		int  flag=0;
 		PhoneNumber number;
-		auto test = [surname, number, &c](pair < Person, PhoneNumber>vec, int i=0)
-		{
-			if (vec.first.surname == surname && i==1)
-			{
-				c = "";
-				vec.second = number;
-				i++;
-			}
-			else if (vec.first.surname != surname)
-			{
-				c = "not found";
-			}
-			
-		};
+		
 	
 
-		for_each(phonebook.begin(), phonebook.end(), [surname, number, &c](pair < Person, PhoneNumber>vec, int i = 0)
-			{
-				if (vec.first.surname == surname && i == 1)
-				{
-					c = "";
-					vec.second = number;
-					i++;
+		for_each(phonebook.begin(), phonebook.end(), [surname, &number,&flag](const  pair<Person, PhoneNumber>& vec) 
+		{
+				
+				if(vec.first.surname==surname)
+				{ 
+					number = vec.second;
+					++flag;
 				}
-				else if (vec.first.surname != surname)
-				{
-					c = "not found";
-				}
-
-			});
+				
+		});
 		
-		return { c ,number };
+		if (flag==1)
+		{
+			return { "",number };
+		}
+		else if (flag > 1)
+		{
+			return { "found more than 1",number };
+		}
+		else
+		{
+			return { "not found",number };
+		}
+		
 		 
 	};
-	
+
 
 	
+	void ChangePhoneNumber(Person a, PhoneNumber b)
+	{
+
+
+
+
+		vector<pair<Person, PhoneNumber>>::iterator itr = find_if(phonebook.begin(), phonebook.end(), [a, b](const pair< Person, PhoneNumber>& vec)
+		{
+				return vec.first == a;
+
+		});
+
+		if (itr != phonebook.end())
+		{
+			itr->second = b;
+			
+		}
+		else
+			{ }
+
+		
+
+
+	}
+
+
+
 };
 
 
@@ -265,9 +287,19 @@ int main()
 		cout << endl;
 	};
 
-	print_phone_number("Aleksandrov");
+	print_phone_number("Solovev");
 
-	print_phone_number("Ivanov");
+	print_phone_number("Petrov");
 
+	cout << "----ChangePhoneNumber----" << endl;
+	book.ChangePhoneNumber(Person{ "Kotov", "Vasilii", "Eliseevich" },
+		PhoneNumber{ 7, 123, "15344458", 0 });
+	book.ChangePhoneNumber(Person{ "Mironova", "Margarita", "Vladimirovna" },
+		PhoneNumber{ 16, 465, "9155448", 13 });
+	cout << book;
+
+	
 }
+
+
 
